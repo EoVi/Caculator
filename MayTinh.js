@@ -1,13 +1,15 @@
 import React, { toString, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { create } from 'react-test-renderer';
+import Icon from 'react-native-vector-icons/FontAwesome';
+
 const App = () => {
   // Sử dụng useState để quản lý trạng thái của màn hình hiển thị và kết quả
   const [display, setDisplay] = useState('');
   const [result, setResult] = useState('');
   const [isResultDisplayed, setIsResultDisplayed] = useState(false); // Kiểm tra xem kết quả có vừa được tính toán không
   const isLastCharOperator = (str) => {
-  return /[+\-*/]/.test(str[str.length - 1]);
+  return /[+\-*/(]/.test(str[str.length - 1]);
   };
 const tinhToan = (expression) => {
   // Định nghĩa các hàm cho các toán tử
@@ -91,14 +93,15 @@ const tinhToan = (expression) => {
     if (value=='=' && display=='') setResult('Bạn chưa nhập giá trị')
     if (isResultDisplayed) {
     setDisplay(value); // Xóa biểu thức hiện tại nếu kết quả vừa được hiển thị
+      if(value=='DEL') setDisplay('')
     setIsResultDisplayed(false); // Đặt lại trạng thái isResultDisplayed
   }
     else if (value == '=') {
       try {
-        // Tính toán kết quả bằng cách sử dụng hàm eval
+        // Tính toán kết quả bằng cách sử dụng hàm tinh toán
         setResult(tinhToan(display).toString());
         setIsResultDisplayed(true); // Đặt trạng thái isResultDisplayed là true sau khi tính toán kết quả
-      } catch (e) {
+      } catch (error) {
         setResult('Error'); // Xử lý lỗi nếu có
         setIsResultDisplayed(true); // Đặt trạng thái isResultDisplayed là true sau khi tính toán kết quả
       }
@@ -109,7 +112,7 @@ const tinhToan = (expression) => {
       setIsResultDisplayed(false); // Đặt lại trạng thái isResultDisplayed
     } 
       // Xóa kí tự vừa nhập
-      else if (value == '<='){
+      else if (value == 'DEL'){
         handleBackspace(display + value);
       }
       else if (value =='X') setDisplay('');
@@ -142,7 +145,7 @@ const tinhToan = (expression) => {
       </View>
       {/* Các nút bấm */}
       <View style={styles.buttonsContainer}>
-        {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '.', '+','(',')','<=','='].map((value) => (
+        {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '.', '+','(',')','DEL','='].map((value) => (
           <TouchableOpacity key={value} style={styles.button} onPress={() => handlePress(value)}>
             <Text style={styles.buttonText}>{value}</Text>
           </TouchableOpacity>
