@@ -1,10 +1,9 @@
 import React, { toString, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, StatusBar } from 'react-native';
 import { create } from 'react-test-renderer';
-import Icon from 'react-native-vector-icons/FontAwesome';
-
+import Icon from 'react-native-vector-icons/FontAwesome6';
 const App = () => {
-  // Sử dụng useState để quản lý trạng thái của màn hình hiển thị và kết quả
+  // Sử dụng useState để quản lý trạnyg thái của màn hình hiển thị và kết quả
   const [display, setDisplay] = useState('');
   const [result, setResult] = useState('');
   const [isResultDisplayed, setIsResultDisplayed] = useState(false); // Kiểm tra xem kết quả có vừa được tính toán không
@@ -45,7 +44,7 @@ const tinhToan = (expression) => {
   // Hàm phân tích biểu thức thành các phần tử
   const parseExpression = (expression) => {
     let tokens = [];
-    let numberBuffer = [];
+    let Luu_tru_so = [];
     let i = 0;
 
     // Duyệt qua từng ký tự của biểu thức
@@ -53,11 +52,11 @@ const tinhToan = (expression) => {
       const char = expression[i];
 
       if (/\d|\./.test(char)) { // Nếu ký tự là số hoặc dấu chấm
-        numberBuffer.push(char);
+        Luu_tru_so.push(char);
       } else if (/\D/.test(char)) { // Nếu ký tự không phải là số
-        if (numberBuffer.length) {
-          tokens.push(numberBuffer.join('')); // Thêm số vào tokens
-          numberBuffer = [];
+        if (Luu_tru_so.length) {
+          tokens.push(Luu_tru_so.join('')); // Thêm số vào tokens
+          Luu_tru_so = [];
         }
 
         if (char === '(') { // Nếu ký tự là dấu ngoặc mở
@@ -79,8 +78,8 @@ const tinhToan = (expression) => {
       i++;
     }
 
-    if (numberBuffer.length) {
-      tokens.push(numberBuffer.join('')); // Thêm số cuối cùng vào tokens
+    if (Luu_tru_so.length) {
+      tokens.push(Luu_tru_so.join('')); // Thêm số cuối cùng vào tokens
     }
 
     return xuLy(tokens); // Tính toán kết quả từ các token
@@ -90,12 +89,13 @@ const tinhToan = (expression) => {
 };
   // Hàm này sẽ được gọi khi bấm nút
   const handlePress = (value) => {
-    if (value=='=' && display=='') setResult('Bạn chưa nhập giá trị')
     if (isResultDisplayed) {
     setDisplay(value); // Xóa biểu thức hiện tại nếu kết quả vừa được hiển thị
-      if(value=='DEL') setDisplay('')
+      if(value=='DEL'||value=='='||value=='C') setDisplay('')
     setIsResultDisplayed(false); // Đặt lại trạng thái isResultDisplayed
   }
+    else if (value=='=' && display=='') setResult('0')
+
     else if (value == '=') {
       try {
         // Tính toán kết quả bằng cách sử dụng hàm tinh toán
@@ -110,6 +110,10 @@ const tinhToan = (expression) => {
       setDisplay('');
       setResult('0');
       setIsResultDisplayed(false); // Đặt lại trạng thái isResultDisplayed
+    } else if (value === '.') {
+      // Nếu ký tự cuối cùng là toán tử hoặc màn hình hiển thị đang trống, không cho phép thêm dấu chấm
+      if (isLastCharOperator(display) || display === '') 
+      return;
     } 
       // Xóa kí tự vừa nhập
       else if (value == 'DEL'){
@@ -117,7 +121,7 @@ const tinhToan = (expression) => {
       }
       else if (value =='X') setDisplay('');
       else if (/[+\-*/]/.test(value)) { // Kiểm tra xem giá trị nhấn có phải là toán tử không
-        if (display === '' && value !== '-') return; // Nếu display rỗng, chỉ cho phép toán tử '-' để bắt đầu biểu thức
+        if (display === '' && (value !== '-'||value !== '+')) return; // Nếu display rỗng, chỉ cho phép toán tử '-' để bắt đầu biểu thức
         if (isLastCharOperator(display)) {
           setDisplay(display.slice(0, -1) + value); // Thay thế toán tử cuối cùng nếu nó là toán tử
         } else {
@@ -133,7 +137,36 @@ const tinhToan = (expression) => {
   const handleBackspace = () => {
     setDisplay(display.slice(0, -1)); // Xóa ký tự cuối cùng trong input
   };
-
+  const buttonIconsOrder = [
+    '7', '8', '9', '+', 
+    '4', '5', '6', '-', 
+    '1', '2', '3', '*', 
+    'C', '0', '.', '/', 
+    '(', ')','DEL','='
+  ];
+  const buttonIcons = {
+    '7': '7',
+    '8': '8',
+    '9': '9',
+    '/': 'divide',
+    '4': '4',
+    '5': '5',
+    '6': '6',
+    '*': 'xmark',
+    '1': '1',
+    '2': '2',
+    '3': '3',
+    '-': 'minus',
+    'C': 'c',
+    '0': '0',
+    '.': 'key',
+    '+': 'plus',
+    // ')': 'parenthesis',
+    // '(': 'parenthesis',
+    'DEL': 'delete-left',
+    '=': 'equals',
+  };
+  const keys = Object.keys(buttonIcons);
   return (
     
     <View style={styles.container}>
@@ -145,9 +178,17 @@ const tinhToan = (expression) => {
       </View>
       {/* Các nút bấm */}
       <View style={styles.buttonsContainer}>
-        {['7', '8', '9', '/', '4', '5', '6', '*', '1', '2', '3', '-', 'C', '0', '.', '+','(',')','DEL','='].map((value) => (
-          <TouchableOpacity key={value} style={styles.button} onPress={() => handlePress(value)}>
-            <Text style={styles.buttonText}>{value}</Text>
+        {buttonIconsOrder.map((value) => (
+        <TouchableOpacity
+            key={value}
+            style={styles.button}
+            onPress={() => handlePress(value)}
+          >
+            {value !== '(' && value !== ')'&& value !== '.' ? (
+              <Icon name={buttonIcons[value]} size={30} color="#000" />
+            ) : (
+              <Text style={styles.buttonText}>{value}</Text>
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -197,6 +238,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     fontSize: 30,
+    fontWeight:'bold'
   },
 });
 
